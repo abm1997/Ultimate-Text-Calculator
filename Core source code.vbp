@@ -1,0 +1,590 @@
+
+Dim Xdig(1 To 40) As String
+Dim Neq, q, sh, i, c, z  As Byte
+Dim R, operand1, operand2 As Variant
+Dim StartPRarr(1 To 20), EndPRarr(1 To 20), POWarr(1 To 20), MULT_DEVarr(1 To 20), ADD_SUBarr(1 To 20) As Integer
+Dim C_PRarr, C_POWarr, C_MULT_DEVarr, C_ADD_SUBarr As Byte
+Dim oldstateNum As Boolean
+Dim lasts, newch As String
+Dim C_PRleft, C_PRright As Byte
+Dim N_PRleft(1 To 10), N_PRright(1 To 10) As Byte
+
+
+Private Sub Command1_Click()
+Dim x As Integer
+
+Neq = InStr(Text1.Text, "=")
+
+
+c = 1
+sh = 1
+q = 1
+lasts = ""
+oldstateNum = False
+C_PRleft = 0
+C_PRright = 0
+C_PRarr = 0
+C_POWarr = 0
+C_MULT_DEVarr = 0
+C_ADD_SUBarr = 0
+
+For i = 1 To 20
+Xdig(i) = ""
+Xdig(41 - i) = ""
+StartPRarr(i) = 0
+EndPRarr(i) = 0
+POWarr(i) = 0
+MULT_DEVarr(i) = 0
+ADD_SUBarr(i) = 0
+Next i
+
+
+
+For i = 1 To Neq
+newch = Mid(Text1.Text, i, 1)
+
+If (Asc(newch) >= 48 And Asc(newch) <= 57) Then
+lasts = lasts & newch
+oldstateNum = True
+
+ElseIf (newch = "+") Then
+
+If (oldstateNum) Then
+Xdig(c) = lasts
+c = c + 1
+lasts = ""
+oldstateNum = False
+End If
+Xdig(c) = "+"
+c = c + 1
+
+
+ElseIf (newch = "-") Then
+If (oldstateNum) Then
+Xdig(c) = lasts
+c = c + 1
+lasts = ""
+oldstateNum = False
+End If
+Xdig(c) = "-"
+c = c + 1
+
+ElseIf (newch = "*") Then
+If (oldstateNum) Then
+Xdig(c) = lasts
+c = c + 1
+lasts = ""
+oldstateNum = False
+End If
+Xdig(c) = "*"
+c = c + 1
+
+ElseIf (newch = "/") Then
+If (oldstateNum) Then
+Xdig(c) = lasts
+c = c + 1
+lasts = ""
+oldstateNum = False
+End If
+Xdig(c) = "/"
+c = c + 1
+
+ElseIf (newch = "^") Then
+If (oldstateNum) Then
+Xdig(c) = lasts
+c = c + 1
+lasts = ""
+oldstateNum = False
+End If
+Xdig(c) = "^"
+c = c + 1
+
+ElseIf (newch = "(") Then
+If (oldstateNum) Then
+Xdig(c) = lasts
+c = c + 1
+lasts = ""
+oldstateNum = False
+End If
+Xdig(c) = "("
+c = c + 1
+
+ElseIf (newch = ")") Then
+If (oldstateNum) Then
+Xdig(c) = lasts
+c = c + 1
+lasts = ""
+oldstateNum = False
+End If
+Xdig(c) = ")"
+c = c + 1
+
+ElseIf (newch = "=") Then
+If (oldstateNum) Then
+Xdig(c) = lasts
+c = c + 1
+lasts = ""
+oldstateNum = False
+End If
+Xdig(c) = "="
+Neq = c
+
+Do While Not ((Asc(Xdig(Neq - 1)) >= 48 And Asc(Xdig(Neq - 1)) <= 57) Or (Xdig(Neq - 1) = ")"))
+Xdig(Neq - 1) = "="
+Xdig(Neq) = ""
+Neq = Neq - 1
+Loop
+
+End If
+
+If c = 2 Then
+If Not ((Asc(Xdig(1)) >= 48 And Asc(Xdig(1)) <= 57) Or (Xdig(1) = "(") Or (Xdig(1) = "-")) Then
+Xdig(1) = ""
+c = 1
+End If
+End If
+
+Next i
+
+
+Do
+
+If ((Asc(Xdig(q)) < 48 Or Asc(Xdig(q)) > 57) And (Asc(Xdig(q + 1)) < 48 Or Asc(Xdig(q + 1)) > 57)) Then
+If ((Xdig(q) = "+" And Xdig(q + 1) = "-") Or (Xdig(q) = "-" And Xdig(q + 1) = "+")) Then
+Xdig(q) = "-"
+For sh = q + 1 To Neq - 2
+Xdig(sh) = Xdig(sh + 1)
+Next sh
+
+q = q - 1
+Xdig(Neq) = ""
+Xdig(Neq - 1) = "="
+Neq = Neq - 1
+
+ElseIf Not ((Xdig(q) = ")" And Xdig(q + 1) <> "(") Or (Xdig(q) <> ")" And Xdig(q + 1) = "(") Or (Xdig(q) = "^" And Xdig(q + 1) = "-") Or (Xdig(q) = "*" And Xdig(q + 1) = "-") Or (Xdig(q) = "/" And Xdig(q + 1) = "-") Or (Xdig(q) = "(" And Xdig(q + 1) = "-")) Then
+For sh = q + 1 To Neq - 2
+Xdig(sh) = Xdig(sh + 1)
+Next sh
+
+q = q - 1
+Xdig(Neq) = ""
+Xdig(Neq - 1) = "="
+Neq = Neq - 1
+End If
+End If
+
+q = q + 1
+
+Loop While (q < Neq - 1)
+
+q = 1
+Do While (q < Neq - 1 And Xdig(q) <> "(")
+
+If (Xdig(q) = ")") Then
+For sh = q To Neq - 2
+Xdig(sh) = Xdig(sh + 1)
+Next sh
+
+q = q - 1
+Xdig(Neq) = ""
+Xdig(Neq - 1) = "="
+Neq = Neq - 1
+
+If ((Asc(Xdig(q)) >= 48 And Asc(Xdig(q)) <= 57) And (Asc(Xdig(q + 1)) >= 48 And Asc(Xdig(q + 1)) <= 57)) Then
+For z = q To Neq - 1
+
+If (z = q) Then
+Xdig(z) = Xdig(z) & Xdig(z + 1)
+Else
+Xdig(z) = Xdig(z + 1)
+End If
+
+Next z
+q = q - 1
+Xdig(Neq) = ""
+Xdig(Neq - 1) = "="
+Neq = Neq - 1
+End If
+
+End If
+
+q = q + 1
+Loop
+
+
+q = Neq - 1
+Do While (q > 1 And Xdig(q) <> ")")
+If (Xdig(q) = "(") Then
+For sh = q To Neq - 1
+Xdig(sh) = Xdig(sh + 1)
+Next sh
+
+'q = q + 1
+Xdig(Neq) = ""
+Xdig(Neq - 1) = "="
+Neq = Neq - 1
+
+If ((Asc(Xdig(q)) >= 48 And Asc(Xdig(q)) <= 57) And (Asc(Xdig(q - 1)) >= 48 And Asc(Xdig(q - 1)) <= 57)) Then
+For z = q To Neq - 1
+
+If (z = q) Then
+Xdig(z - 1) = Xdig(z - 1) & Xdig(z)
+Else
+Xdig(z - 1) = Xdig(z)
+End If
+
+Next z
+q = q + 1
+Xdig(Neq) = ""
+Xdig(Neq - 1) = "="
+Neq = Neq - 1
+End If
+
+End If
+
+q = q - 1
+Loop
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+For q = 1 To Neq - 1
+
+If (Xdig(q) = "(") Then
+C_PRleft = C_PRleft + 1
+N_PRleft(C_PRleft) = q
+
+ElseIf (Xdig(q) = ")") Then
+C_PRright = C_PRright + 1
+N_PRright(C_PRright) = q
+End If
+
+Next q
+
+If (C_PRright > C_PRleft) Then
+For q = 1 To C_PRright - C_PRleft
+
+For sh = N_PRright(q) - q + 1 To Neq - 1
+Xdig(sh) = Xdig(sh + 1)
+Next sh
+'q = q - 1
+Xdig(Neq) = ""
+Xdig(Neq - 1) = "="
+Neq = Neq - 1
+
+Next q
+
+ElseIf (C_PRright < C_PRleft) Then
+
+For q = 1 To C_PRleft - C_PRright
+For sh = N_PRleft(q) - q + 1 To Neq - 1
+Xdig(sh) = Xdig(sh + 1)
+Next sh
+'q = q - 1
+Xdig(Neq) = ""
+Xdig(Neq - 1) = "="
+Neq = Neq - 1
+
+Next q
+End If
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+For q = 1 To Neq - 2
+
+If ((Asc(Xdig(q)) >= 48 And Asc(Xdig(q)) <= 57) And (Asc(Xdig(q + 1)) >= 48 And Asc(Xdig(q + 1)) <= 57)) Then
+
+For sh = q To Neq - 1
+If (sh = q) Then
+Xdig(sh) = Xdig(sh) & Xdig(sh + 1)
+Else
+Xdig(sh) = Xdig(sh + 1)
+End If
+Next sh
+
+'q = q - 1
+Xdig(Neq) = ""
+Xdig(Neq - 1) = "="
+Neq = Neq - 1
+End If
+
+Next q
+''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+For z = 1 To Neq - 1
+
+If (Xdig(z) = "(") Then
+C_PRarr = C_PRarr + 1
+StartPRarr(C_PRarr) = z
+
+ElseIf (Xdig(z) = ")") Then
+q = C_PRarr
+Do While (q >= 1 And EndPRarr(q) > 0)
+q = q - 1
+Loop
+EndPRarr(q) = z
+
+ElseIf Xdig(z) = "^" Then
+C_POWarr = C_POWarr + 1
+POWarr(C_POWarr) = z
+
+ElseIf Xdig(z) = "*" Then
+C_MULT_DEVarr = C_MULT_DEVarr + 1
+MULT_DEVarr(C_MULT_DEVarr) = z
+
+ElseIf Xdig(z) = "/" Then          ' "/" is represented by "0" then "N"
+C_MULT_DEVarr = C_MULT_DEVarr + 2
+MULT_DEVarr(C_MULT_DEVarr) = z
+
+Else
+If (z > 1) Then
+If ((Xdig(z) = "+") And Not (Xdig(z - 1) = "^" Or Xdig(z - 1) = "*" Or Xdig(z - 1) = "/")) Then
+C_ADD_SUBarr = C_ADD_SUBarr + 1
+ADD_SUBarr(C_ADD_SUBarr) = z
+
+ElseIf ((Xdig(z) = "-") And Not (Xdig(z - 1) = "^" Or Xdig(z - 1) = "*" Or Xdig(z - 1) = "/")) Then   ' "-" is represented by "0" then "N"
+C_ADD_SUBarr = C_ADD_SUBarr + 2
+ADD_SUBarr(C_ADD_SUBarr) = z
+End If
+
+Else
+If Xdig(z) = "+" Then
+C_ADD_SUBarr = C_ADD_SUBarr + 1
+ADD_SUBarr(C_ADD_SUBarr) = z
+
+ElseIf Xdig(z) = "-" Then
+C_ADD_SUBarr = C_ADD_SUBarr + 2
+ADD_SUBarr(C_ADD_SUBarr) = z
+End If
+End If
+
+End If
+Next z
+'''''''''''''''''''''''''''''''''''
+z = C_PRarr
+Do While (z >= 1)
+
+For i = 1 To C_POWarr
+operand1 = " "
+operand2 = " "
+If POWarr(i) > 0 Then
+If (POWarr(i) >= StartPRarr(z) + 1 And POWarr(i) <= EndPRarr(z) - 1 And Xdig(POWarr(i) + 1) <> "-") Then
+
+sh = POWarr(i) + 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh <= EndPRarr(z) - 1)
+sh = sh + 1
+Loop
+operand2 = Xdig(sh)
+Xdig(sh) = Chr(28)                                 ' chr(28) is null character
+
+sh = POWarr(i) - 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh >= StartPRarr(z) + 1)
+sh = sh - 1
+Loop
+operand1 = Xdig(sh)
+Xdig(sh) = Chr(28)
+
+R = Val(operand1) ^ Val(operand2)
+Xdig(POWarr(i)) = R
+POWarr(i) = -1
+
+
+ElseIf (POWarr(i) >= StartPRarr(z) + 1 And POWarr(i) <= EndPRarr(z) - 1 And Xdig(POWarr(i) + 1) = "-") Then
+
+sh = POWarr(i) + 2
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh <= EndPRarr(z) - 1)
+sh = sh + 1
+Loop
+operand2 = Xdig(sh)
+Xdig(POWarr(i) + 1) = Chr(28)
+Xdig(sh) = Chr(28)
+
+sh = POWarr(i) - 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh >= StartPRarr(z) + 1)
+sh = sh - 1
+Loop
+operand1 = Xdig(sh)
+Xdig(sh) = Chr(28)
+
+R = Val(operand1) ^ (-1 * Val(operand2))
+Xdig(POWarr(i)) = R
+POWarr(i) = -1
+
+End If
+End If
+Next i
+''''''''
+
+For i = 1 To C_MULT_DEVarr
+operand1 = " "
+operand2 = " "
+If MULT_DEVarr(i) > 0 Then
+If (MULT_DEVarr(i) >= StartPRarr(z) + 1 And MULT_DEVarr(i) <= EndPRarr(z) - 1 And Xdig(MULT_DEVarr(i) + 1) <> "-") Then
+
+sh = MULT_DEVarr(i) + 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh <= EndPRarr(z) - 1)
+sh = sh + 1
+Loop
+operand2 = Xdig(sh)
+Xdig(sh) = Chr(28)                                 ' chr(28) is null character
+
+sh = MULT_DEVarr(i) - 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh >= StartPRarr(z) + 1)
+sh = sh - 1
+Loop
+operand1 = Xdig(sh)
+Xdig(sh) = Chr(28)
+
+R = Val(operand1) * Val(operand2)
+Xdig(MULT_DEVarr(i)) = R
+MULT_DEVarr(i) = -1
+
+
+ElseIf (MULT_DEVarr(i) >= StartPRarr(z) + 1 And MULT_DEVarr(i) <= EndPRarr(z) - 1 And Xdig(MULT_DEVarr(i) + 1) = "-") Then
+
+sh = MULT_DEVarr(i) + 2
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh <= EndPRarr(z) - 1)
+sh = sh + 1
+Loop
+operand2 = Xdig(sh)
+Xdig(MULT_DEVarr(i) + 1) = Chr(28)
+Xdig(sh) = Chr(28)
+
+sh = MULT_DEVarr(i) - 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh >= StartPRarr(z) + 1)
+sh = sh - 1
+Loop
+operand1 = Xdig(sh)
+Xdig(sh) = Chr(28)
+
+R = Val(operand1) * (-1 * Val(operand2))
+Xdig(MULT_DEVarr(i)) = R
+MULT_DEVarr(i) = -1
+
+End If
+
+ElseIf MULT_DEVarr(i) = 0 Then
+i = i + 1
+If (MULT_DEVarr(i) >= StartPRarr(z) + 1 And MULT_DEVarr(i) <= EndPRarr(z) - 1 And Xdig(MULT_DEVarr(i) + 1) <> "-") Then
+
+sh = MULT_DEVarr(i) + 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh <= EndPRarr(z) - 1)
+sh = sh + 1
+Loop
+operand2 = Xdig(sh)
+Xdig(sh) = Chr(28)                                 ' chr(28) is null character
+
+sh = MULT_DEVarr(i) - 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh >= StartPRarr(z) + 1)
+sh = sh - 1
+Loop
+operand1 = Xdig(sh)
+Xdig(sh) = Chr(28)
+
+R = Val(operand1) / Val(operand2)
+Xdig(MULT_DEVarr(i)) = R
+MULT_DEVarr(i) = -1
+MULT_DEVarr(i - 1) = -1
+
+ElseIf (MULT_DEVarr(i) >= StartPRarr(z) + 1 And MULT_DEVarr(i) <= EndPRarr(z) - 1 And Xdig(MULT_DEVarr(i) + 1) = "-") Then
+
+sh = MULT_DEVarr(i) + 2
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh <= EndPRarr(z) - 1)
+sh = sh + 1
+Loop
+operand2 = Xdig(sh)
+Xdig(MULT_DEVarr(i) + 1) = Chr(28)
+Xdig(sh) = Chr(28)
+
+sh = MULT_DEVarr(i) - 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh >= StartPRarr(z) + 1)
+sh = sh - 1
+Loop
+operand1 = Xdig(sh)
+Xdig(sh) = Chr(28)
+
+R = Val(operand1) / (-1 * Val(operand2))
+Xdig(MULT_DEVarr(i)) = R
+MULT_DEVarr(i) = -1
+MULT_DEVarr(i - 1) = -1
+
+End If
+End If
+Next i
+'''''''
+
+
+For i = 1 To C_ADD_SUBarr
+operand1 = " "
+operand2 = " "
+If ADD_SUBarr(i) > 0 Then
+If (ADD_SUBarr(i) >= StartPRarr(z) + 1 And ADD_SUBarr(i) <= EndPRarr(z) - 1) Then
+
+sh = ADD_SUBarr(i) + 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh <= EndPRarr(z) - 1)
+sh = sh + 1
+Loop
+operand2 = Xdig(sh)
+Xdig(sh) = Chr(28)                                 ' chr(28) is null character
+
+sh = ADD_SUBarr(i) - 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh >= StartPRarr(z) + 1)
+sh = sh - 1
+Loop
+If (Xdig(ADD_SUBarr(i) - 1) = "(" Or ADD_SUBarr(i) = 1) Then
+operand1 = 0
+Else
+operand1 = Xdig(sh)
+Xdig(sh) = Chr(28)
+End If
+
+R = Val(operand1) + Val(operand2)
+
+Xdig(ADD_SUBarr(i)) = R
+ADD_SUBarr(i) = -1
+End If
+
+ElseIf ADD_SUBarr(i) = 0 Then
+i = i + 1
+If (ADD_SUBarr(i) >= StartPRarr(z) + 1 And ADD_SUBarr(i) <= EndPRarr(z) - 1) Then
+
+sh = ADD_SUBarr(i) + 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh <= EndPRarr(z) - 1)
+sh = sh + 1
+Loop
+operand2 = Xdig(sh)
+Xdig(sh) = Chr(28)                                 ' chr(28) is null character
+
+sh = ADD_SUBarr(i) - 1
+Do While (Asc(Xdig(sh)) < 48 Or Asc(Xdig(sh)) > 57) And Val(Xdig(sh)) >= 0 And (sh >= StartPRarr(z) + 1)
+sh = sh - 1
+Loop
+operand1 = Xdig(sh)
+Xdig(sh) = Chr(28)
+
+R = Val(operand1) - Val(operand2)
+Xdig(ADD_SUBarr(i)) = R
+ADD_SUBarr(i) = -1
+ADD_SUBarr(i - 1) = -1
+End If
+
+End If
+Next i
+
+Xdig(StartPRarr(z)) = Chr(28)
+Xdig(EndPRarr(z)) = Chr(28)
+z = z - 1
+Loop
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''
+If (Neq = 4) Then
+Print "Ans = " & Xdig(2)
+Else
+Print "Ans = " & R
+End If
+End Sub
+
+Private Sub Form_click()
+Form1.Show
+End Sub
+
+
+ 
